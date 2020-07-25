@@ -1,1 +1,1 @@
-# tournamentschedule
+# Automatic Tournament Scheduler for PyPlanet
