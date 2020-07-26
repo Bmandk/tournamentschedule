@@ -12,6 +12,7 @@ class TournementSchedule(AppConfig):
 		super().__init__(*args, **kwargs)
 		self.queueStart = False
 		self.live = False
+		self.queueFinish = False
 
 	async def on_start(self):
 		# Settings
@@ -39,45 +40,58 @@ class TournementSchedule(AppConfig):
 
 		await asyncio.gather(
 			self.instance.chat('Starting tournament now!'),
-			self.instance.mode_manager.set_next_script("Trackmania/TM_Cup_Online.Script.txt"),
+			#self.instance.mode_manager.set_next_script("Trackmania/TM_Cup_Online.Script.txt"),
 			self.instance.map_manager.load_matchsettings(tournament_map_list),
-		)
-
-		await self.instance.gbx.multicall(
 			self.instance.gbx('NextMap'),
-			self.instance.gbx('RestartChallenge', True)
 		)
 
 		self.queueStart = True
+
+		await self.instance.map_manager.update_list(full_update=True),
 
 	async def command_end_tournament(self, player, data, **kwargs):
 		await self.end_tournament()
 
 	async def map_begin(self, map):
-		if (self.queueStart)
+		if (self.queueStart):
 			self.live = True
+			self.queueStart = False
+
+		if (self.queueFinish):
+			self.end_tournament()
+
 
 	async def end_tournament(self):
 		normal_map_list = await self.get_map_list('normal_map_list')
 
-		await asyncio.gather(
-			self.instance.chat('Tournament over now!'),
-			self.instance.mode_manager.set_next_script("Trackmania/TM_TimeAttack_Online.Script.txt"),
-			self.instance.map_manager.load_matchsettings(normal_map_list),
-			self.instance.gbx('NextMap')
-		)
+		await self.instance.chat('Tournament over now!'),
+		#await self.instance.mode_manager.set_next_script("Trackmania/TM_TimeAttack_Online.Script.txt"),
 
 		self.live = False
+		await self.instance.map_manager.load_matchsettings(normal_map_list),
+		await self.instance.map_manager.update_list(full_update=True)
+
+		await self.instance.gbx.multicall(
+			self.instance.gbx('NextMap'),
+		)
 
 	async def scores(self, players, teams, winner_team, use_teams, winner_player, section, **kwargs):
-		#Section: PreEndRound, EndRound, EndMap, EndMatch
-		await self.instance.chat(section)
-		if section == 'PreEndRound':
-			# Do not update the live rankings on the 'pre end round'-stage.
-			# This will make the points added disappear without updating the actual scores.
+		# Section: PreEndRound, EndRound, EndMap, EndMatch
+		# Player: matchpoints is equal to score limit when they are
+		# finalist, and higher than score limit when they are finished. If the previous is not true (not sure right now),
+		# then we can also use winner_player to figure out whether a player has won the game, but I am also unsure
+		# about that
+
+
+		#if (section == 'EndRound'):
+			#await self.instance.chat(players[0]['matchpoints'])
+			#await self.instance.chat("Winner player: " + winner_player + " (is empty: " + winner_player == '' + ")")
+
+		if (not self.live or section != 'EndMatch'):
 			return
 
-		await self.handle_scores(players)
+		#await self.instance.chat(winner_player)
+		self.queueFinish = True
 
 	async def handle_scores(self, players):
 		self.current_rankings = []
