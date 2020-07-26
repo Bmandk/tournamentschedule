@@ -58,7 +58,7 @@ class TournementSchedule(AppConfig):
 			self.queueStart = False
 
 		if (self.queueFinish):
-			self.end_tournament()
+			await self.end_tournament()
 
 
 	async def end_tournament(self):
