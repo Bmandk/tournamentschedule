@@ -1,0 +1,86 @@
+declare Quad_Mon_Boolean <=> (Page.GetFirstChild("schedule_mon_boolean_switch") as CMlQuad);
+declare Quad_Tue_Boolean <=> (Page.GetFirstChild("schedule_tue_boolean_switch") as CMlQuad);
+declare Quad_Wed_Boolean <=> (Page.GetFirstChild("schedule_wed_boolean_switch") as CMlQuad);
+declare Quad_Thu_Boolean <=> (Page.GetFirstChild("schedule_thu_boolean_switch") as CMlQuad);
+declare Quad_Fri_Boolean <=> (Page.GetFirstChild("schedule_fri_boolean_switch") as CMlQuad);
+declare Quad_Sat_Boolean <=> (Page.GetFirstChild("schedule_sat_boolean_switch") as CMlQuad);
+declare Quad_Sun_Boolean <=> (Page.GetFirstChild("schedule_sun_boolean_switch") as CMlQuad);
+
+declare Mon_Value <=> (Page.GetFirstChild("schedule_mon_field") as CMlEntry);
+declare Tue_Value <=> (Page.GetFirstChild("schedule_tue_field") as CMlEntry);
+declare Wed_Value <=> (Page.GetFirstChild("schedule_wed_field") as CMlEntry);
+declare Thu_Value <=> (Page.GetFirstChild("schedule_thu_field") as CMlEntry);
+declare Fri_Value <=> (Page.GetFirstChild("schedule_fri_field") as CMlEntry);
+declare Sat_Value <=> (Page.GetFirstChild("schedule_sat_field") as CMlEntry);
+declare Sun_Value <=> (Page.GetFirstChild("schedule_sun_field") as CMlEntry);
+
+while(True) {
+    foreach (Event in PendingEvents) {
+        if (Event.Type == CMlScriptEvent::Type::MouseClick) {
+            if (Event.ControlId == "schedule_mon_boolean_switch") {
+                if (Quad_Mon_Boolean.StyleSelected) {
+                    Quad_Mon_Boolean.StyleSelected = False;
+                    Mon_Value.SetText("0", True);
+                } else {
+                    Quad_Mon_Boolean.StyleSelected = True;
+                    Mon_Value.SetText("1", True);
+                }
+            }
+            if (Event.ControlId == "schedule_tue_boolean_switch") {
+                if (Quad_Tue_Boolean.StyleSelected) {
+                    Quad_Tue_Boolean.StyleSelected = False;
+                    Tue_Value.SetText("0", True);
+                } else {
+                    Quad_Tue_Boolean.StyleSelected = True;
+                    Tue_Value.SetText("1", True);
+                }
+            }
+            if (Event.ControlId == "schedule_wed_boolean_switch") {
+                if (Quad_Wed_Boolean.StyleSelected) {
+                    Quad_Wed_Boolean.StyleSelected = False;
+                    Wed_Value.SetText("0", True);
+                } else {
+                    Quad_Wed_Boolean.StyleSelected = True;
+                    Wed_Value.SetText("1", True);
+                }
+            }
+            if (Event.ControlId == "schedule_thu_boolean_switch") {
+                if (Quad_Thu_Boolean.StyleSelected) {
+                    Quad_Thu_Boolean.StyleSelected = False;
+                    Thu_Value.SetText("0", True);
+                } else {
+                    Quad_Thu_Boolean.StyleSelected = True;
+                    Thu_Value.SetText("1", True);
+                }
+            }
+            if (Event.ControlId == "schedule_fri_boolean_switch") {
+                if (Quad_Fri_Boolean.StyleSelected) {
+                    Quad_Fri_Boolean.StyleSelected = False;
+                    Fri_Value.SetText("0", True);
+                } else {
+                    Quad_Fri_Boolean.StyleSelected = True;
+                    Fri_Value.SetText("1", True);
+                }
+            }
+            if (Event.ControlId == "schedule_sat_boolean_switch") {
+                if (Quad_Sat_Boolean.StyleSelected) {
+                    Quad_Sat_Boolean.StyleSelected = False;
+                    Sat_Value.SetText("0", True);
+                } else {
+                    Quad_Sat_Boolean.StyleSelected = True;
+                    Sat_Value.SetText("1", True);
+                }
+            }
+            if (Event.ControlId == "schedule_sun_boolean_switch") {
+                if (Quad_Sun_Boolean.StyleSelected) {
+                    Quad_Sun_Boolean.StyleSelected = False;
+                    Sun_Value.SetText("0", True);
+                } else {
+                    Quad_Sun_Boolean.StyleSelected = True;
+                    Sun_Value.SetText("1", True);
+                }
+            }
+        }
+    }
+    yield;
+}

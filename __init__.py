@@ -5,7 +5,7 @@ from pyplanet.contrib.command import Command
 from pyplanet.apps.core.maniaplanet import callbacks as mp_signals
 from pyplanet.apps.core.trackmania import callbacks as tm_signals
 from pyplanet.contrib.setting import Setting
-from datetime import datetime
+from .views import ScheduleView, ScheduleListView
 
 class TournementSchedule(AppConfig):
 	def __init__(self, *args, **kwargs):
@@ -22,37 +22,26 @@ class TournementSchedule(AppConfig):
 		)
 
 		# Perms
-		await self.instance.permission_manager.register('tournament', 'Handles server', app=self, min_level=2)
+		await self.instance.permission_manager.register('tournament', 'Manage tournaments', app=self, min_level=2)
 
 		# Commands
-		await self.instance.command_manager.register(Command(command='starttournament', target=self.command_start_tournament, perms='tournamentschedule:tournament', admin=True, description='Starts competitive match'))
-		await self.instance.command_manager.register(Command(command='endtournament', target=self.command_end_tournament, perms='tournamentschedule:tournament', admin=True, description='Starts competitive match'))
-
-		# Signals
-		self.context.signals.listen(mp_signals.map.map_begin, self.map_begin)
-		self.context.signals.listen(tm_signals.scores, self.scores)
-
-	async def command_start_tournament(self, player, data, **kwargs):
-		await self.start_tournament()
-
-	async def start_tournament(self):
-		tournament_map_list = await self.get_map_list('tournament_map_list')
-
-		await asyncio.gather(
-			self.instance.chat('Starting tournament now!'),
-			#self.instance.mode_manager.set_next_script("Trackmania/TM_Cup_Online.Script.txt"),
-			self.instance.map_manager.load_matchsettings(tournament_map_list),
-			self.instance.gbx('NextMap'),
+		await self.instance.command_manager.register(
+			Command(command='starttournament', target=self.command_start_tournament,
+					perms='tournamentschedule:tournament', admin=True,
+					description='Starts tournament with default settings'),
+			Command(command='endtournament', target=self.command_end_tournament, perms='tournamentschedule:tournament',
+					admin=True, description='Ends tournament'),
+			Command(command='scheduletournament', aliases=['st'], target=self.command_schedule_tournament,
+					perms='tournamentschedule:tournament', admin=True, description='Schedule new tournament'),
+			Command(command='tournamentschedulelist', aliases=['tsl'], target=self.command_tournament_schedule_list,
+					perms='tournamentschedule:tournament', admin=True, description='View and edit scheduled tournaments'),
 		)
 
-		self.queueStart = True
+		# Signals
+		self.context.signals.listen(mp_signals.map.map_begin, self.signal_map_begin)
+		self.context.signals.listen(tm_signals.scores, self.signal_scores)
 
-		await self.instance.map_manager.update_list(full_update=True),
-
-	async def command_end_tournament(self, player, data, **kwargs):
-		await self.end_tournament()
-
-	async def map_begin(self, map):
+	async def signal_map_begin(self, map):
 		if (self.queueStart):
 			self.live = True
 			self.queueStart = False
@@ -61,22 +50,7 @@ class TournementSchedule(AppConfig):
 			await self.end_tournament()
 			self.queueFinish = False
 
-
-	async def end_tournament(self):
-		normal_map_list = await self.get_map_list('normal_map_list')
-
-		await self.instance.chat('Tournament over now!'),
-		#await self.instance.mode_manager.set_next_script("Trackmania/TM_TimeAttack_Online.Script.txt"),
-
-		self.live = False
-		await self.instance.map_manager.load_matchsettings(normal_map_list),
-		await self.instance.map_manager.update_list(full_update=True)
-
-		await self.instance.gbx.multicall(
-			self.instance.gbx('NextMap'),
-		)
-
-	async def scores(self, players, teams, winner_team, use_teams, winner_player, section, **kwargs):
+	async def signal_scores(self, players, teams, winner_team, use_teams, winner_player, section, **kwargs):
 		# Section: PreEndRound, EndRound, EndMap, EndMatch
 		# Player: matchpoints is equal to score limit when they are
 		# finalist, and higher than score limit when they are finished. If the previous is not true (not sure right now),
@@ -93,6 +67,49 @@ class TournementSchedule(AppConfig):
 
 		#await self.instance.chat(winner_player)
 		self.queueFinish = True
+
+	async def command_start_tournament(self, player, data, **kwargs):
+		await self.start_tournament()
+		await self.instance.gbx('NextMap')
+
+
+	async def command_end_tournament(self, player, data, **kwargs):
+		await self.end_tournament()
+
+	async def command_schedule_tournament(self, player, data, **kwargs):
+		view = ScheduleView(self, player)
+		await view.display()
+
+	async def command_tournament_schedule_list(self, player, data, **kwargs):
+		view = ScheduleListView(self, player)
+		await view.display()
+
+	async def start_tournament(self):
+		#
+		tournament_map_list = await self.get_map_list('tournament_map_list')
+
+		await asyncio.gather(
+			self.instance.chat('Starting tournament after loading!'),
+			self.instance.map_manager.load_matchsettings(tournament_map_list),
+		)
+
+		self.queueStart = True
+
+		await self.instance.map_manager.update_list(full_update=True),
+
+	async def end_tournament(self):
+		normal_map_list = await self.get_map_list('normal_map_list')
+
+		await self.instance.chat('Tournament over now!'),
+		#await self.instance.mode_manager.set_next_script("Trackmania/TM_TimeAttack_Online.Script.txt"),
+
+		self.live = False
+		await self.instance.map_manager.load_matchsettings(normal_map_list),
+		await self.instance.map_manager.update_list(full_update=True)
+
+		await self.instance.gbx.multicall(
+			self.instance.gbx('NextMap'),
+		)
 
 	async def handle_scores(self, players):
 		self.current_rankings = []
