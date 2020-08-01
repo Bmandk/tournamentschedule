@@ -2,7 +2,7 @@ from peewee import *
 from pyplanet.core.db import TimedModel
 from pyplanet.apps.core.maniaplanet.models import Map, Player
 
-class TournamentSchedule(TimedModel):
+class TournamentScheduleModel(TimedModel):
 	name = TextField(default='Empty Tournament')
 	"""
 	The name of the tournament.

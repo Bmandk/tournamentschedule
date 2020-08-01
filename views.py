@@ -3,7 +3,7 @@ import asyncio
 from pyplanet.views import TemplateView
 from pyplanet.views.generics import ListView
 
-from .models import TournamentSchedule
+from .models import TournamentScheduleModel
 
 
 class ScheduleView(TemplateView):
@@ -24,7 +24,7 @@ class ScheduleView(TemplateView):
         self.destroy_on_exit = False
         self.instance = instance
         if (instance is None):
-            self.instance = TournamentSchedule()
+            self.instance = TournamentScheduleModel()
             self.destroy_on_exit = True
 
     async def display(self, **kwargs):
@@ -86,16 +86,18 @@ class ScheduleView(TemplateView):
         self.instance.sun = days[6]
 
         await self.instance.save()
+        await self.app.refresh_schedule()
         if (self.destroy_on_exit):
             await self.destroy()
         else:
             self.response_future.set_result(self.instance)
             self.response_future.done()
+        await self.app.refresh_schedule()
 
 
 class ScheduleListView(ListView):
-    query = TournamentSchedule.select()
-    model = TournamentSchedule
+    query = TournamentScheduleModel.select()
+    model = TournamentScheduleModel
     title = 'Select your item'
 
     def __init__(self, app, player, *args, **kwargs):
@@ -162,3 +164,4 @@ class ScheduleListView(ListView):
     async def action_delete(self, player, values, instance, **kwargs):
         await instance.destroy()
         await self.display()
+        await self.app.refresh_schedule()

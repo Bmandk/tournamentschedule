@@ -1,5 +1,5 @@
-from .tournament_schedule import TournamentSchedule
+from .tournament_schedule_model import TournamentScheduleModel
 
 __all__ = [
-	'TournamentSchedule',
+	'TournamentScheduleModel',
 ]
